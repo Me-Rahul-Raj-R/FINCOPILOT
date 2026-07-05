@@ -47,6 +47,14 @@ async function submitApplication(req, res) {
       ? memoryStore.insertLoanApplication(record)
       : await getModels().LoanApplication.create(record);
 
+    const { broadcast } = require("../utils/notificationService");
+    broadcast({
+      type: "LOAN_APPLICATION",
+      title: result.decision === "APPROVE" ? "Loan Approved" : "Loan Rejected",
+      message: `Loan application for ${body.applicantName} of ${body.loanAmount} INR was ${result.decision === "APPROVE" ? "approved" : "rejected"} (Score: ${Math.round(result.creditScore)})`,
+      severity: result.decision === "APPROVE" ? "success" : "warning",
+    });
+
     res.status(201).json(saved);
   } catch (err) {
     console.error("[creditController] submitApplication error:", err);

@@ -15,6 +15,7 @@ const NAV_MAIN = [
   { to: "/cyber-watch", label: "Cyber Watch", code: "SE-05", icon: Lock },
   { to: "/pay", label: "Pay", code: "PY-07", icon: Wallet },
   { to: "/assistant", label: "AI Assistant", code: "AI-06", icon: Bot },
+  { to: "/solver-hub", label: "Problem Solver", code: "SL-08", icon: Sparkles },
 ];
 
 function initials(name = "") {

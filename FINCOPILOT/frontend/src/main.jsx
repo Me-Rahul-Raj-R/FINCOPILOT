@@ -9,11 +9,11 @@ import { ToastProvider } from './lib/ToastContext.jsx'
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <ToastProvider>
-        <AuthProvider>
+      <AuthProvider>
+        <ToastProvider>
           <App />
-        </AuthProvider>
-      </ToastProvider>
+        </ToastProvider>
+      </AuthProvider>
     </BrowserRouter>
   </StrictMode>,
 )

@@ -11,6 +11,7 @@ import Badge from "../components/Badge.jsx";
 import EmptyState from "../components/EmptyState.jsx";
 import { api } from "../lib/api.js";
 import { useAuth } from "../lib/AuthContext.jsx";
+import { useToast } from "../lib/ToastContext.jsx";
 import { timeAgo, dailyCountTrend } from "../lib/timeUtils.js";
 
 const MODULES = [
@@ -37,6 +38,7 @@ function ActivityIcon({ type }) {
 
 export default function Dashboard() {
   const { user } = useAuth();
+  const { liveEvents } = useToast();
   const [stats, setStats] = useState(null);
   const [activity, setActivity] = useState([]);
   const [trends, setTrends] = useState({});
@@ -67,6 +69,36 @@ export default function Dashboard() {
       setLoading(false);
     });
   }, []);
+
+  useEffect(() => {
+    if (liveEvents && liveEvents.length > 0) {
+      api.dashboardSummary().then(setStats).catch(() => {});
+    }
+  }, [liveEvents]);
+
+  const combinedActivity = [
+    ...(liveEvents || []).map((evt, idx) => {
+      let feedType = "wallet";
+      if (evt.type === "LOAN_APPLICATION") feedType = "credit";
+      else if (evt.type === "FRAUD_ALERT") feedType = "fraud";
+      else if (evt.type === "KYC_SUBMISSION") feedType = "kyc";
+
+      let statusTag = "SUCCESS";
+      if (evt.severity === "critical") statusTag = "REJECTED";
+      else if (evt.severity === "info") statusTag = "MANUAL_REVIEW";
+
+      return {
+        type: feedType,
+        id: `live-${idx}-${evt.timestamp}`,
+        createdAt: evt.timestamp,
+        title: evt.title,
+        tag: statusTag,
+        sub: evt.message,
+        isLive: true
+      };
+    }),
+    ...activity
+  ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 10);
 
   return (
     <div>
@@ -189,36 +221,49 @@ export default function Dashboard() {
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[1, 2, 3, 4, 5].map(i => <div key={i} className="skeleton" style={{ height: 50 }} />)}
             </div>
-          ) : activity.length === 0 ? (
+          ) : combinedActivity.length === 0 ? (
             <EmptyState icon={Activity} title="No activity yet"
               sub="Score an applicant, check a transaction, or use Pay to see activity here." />
           ) : (
             <div style={{ overflowY: "auto" }}>
-              {activity.map((a, i) => (
+              {combinedActivity.map((a, i) => (
                 <motion.div key={a.id}
                   initial={{ opacity: 0, x: 10 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ duration: 0.2, delay: i * 0.04 }}
                   style={{
                     display: "flex", alignItems: "flex-start", gap: 10,
-                    padding: "10px 0", borderBottom: i < activity.length - 1 ? "1px solid var(--border-soft)" : "none",
+                    padding: "10px 0", borderBottom: i < combinedActivity.length - 1 ? "1px solid var(--border-soft)" : "none",
+                    position: "relative",
                   }}
                 >
                   <div style={{
                     width: 30, height: 30, borderRadius: "var(--r-sm)", flexShrink: 0,
-                    background: "var(--bg-overlay)", border: "1px solid var(--border-soft)",
+                    background: a.isLive ? "var(--teal-glow)" : "var(--bg-overlay)", 
+                    border: `1px solid ${a.isLive ? "var(--teal-border)" : "var(--border-soft)"}`,
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    color: "var(--text-muted)",
+                    color: a.isLive ? "var(--teal)" : "var(--text-muted)",
                   }}>
                     <ActivityIcon type={a.type} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ fontSize: 12.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.title}</div>
+                    <div style={{ fontSize: 12.5, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", display: "flex", alignItems: "center", gap: 5 }}>
+                      {a.title}
+                      {a.isLive && (
+                        <span style={{
+                          display: "inline-block", width: 6, height: 6, borderRadius: "50%",
+                          background: "var(--teal)", boxShadow: "0 0 8px var(--teal)",
+                          animation: "ping 1.5s infinite"
+                        }} />
+                      )}
+                    </div>
                     <div style={{ fontSize: 11, color: "var(--text-muted)" }}>{a.sub}</div>
                   </div>
                   <div style={{ textAlign: "right", flexShrink: 0 }}>
                     {a.tag && <Badge tone={a.tag}>{String(a.tag).replace(/_/g, " ")}</Badge>}
-                    <div style={{ fontSize: 10, color: "var(--text-disabled)", marginTop: 3 }}>{timeAgo(a.createdAt)}</div>
+                    <div style={{ fontSize: 10, color: "var(--text-disabled)", marginTop: 3 }}>
+                      {a.isLive ? "just now" : timeAgo(a.createdAt)}
+                    </div>
                   </div>
                 </motion.div>
               ))}

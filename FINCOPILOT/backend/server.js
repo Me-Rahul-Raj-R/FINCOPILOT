@@ -23,6 +23,7 @@ const dashboardRoutes  = require("./routes/dashboardRoutes");
 const cyberRoutes      = require("./routes/cyberRoutes");
 const walletRoutes     = require("./routes/walletRoutes");
 const adminRoutes      = require("./routes/adminRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 const app = express();
 
@@ -70,6 +71,7 @@ app.use("/api/dashboard",    dashboardRoutes);
 app.use("/api/cyber",        cyberRoutes);
 app.use("/api/wallet",       walletRoutes);
 app.use("/api/admin",        adminRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // ── Serve React SPA (production) ────────────────────────────────────────────
 // The frontend is built into backend/public/dist by the Render build command.

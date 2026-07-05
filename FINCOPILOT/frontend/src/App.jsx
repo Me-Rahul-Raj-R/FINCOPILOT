@@ -12,6 +12,7 @@ import CyberWatch from "./pages/CyberWatch.jsx";
 import Pay from "./pages/Pay.jsx";
 import Assistant from "./pages/Assistant.jsx";
 import AdminPanel from "./pages/AdminPanel.jsx";
+import SolverHub from "./pages/SolverHub.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
 export default function App() {
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="cyber-watch" element={<CyberWatch />} />
           <Route path="pay" element={<Pay />} />
           <Route path="assistant" element={<Assistant />} />
+          <Route path="solver-hub" element={<SolverHub />} />
           <Route element={<AdminRoute />}>
             <Route path="admin" element={<AdminPanel />} />
           </Route>

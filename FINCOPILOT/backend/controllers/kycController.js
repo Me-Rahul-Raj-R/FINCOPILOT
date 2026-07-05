@@ -96,6 +96,14 @@ async function submitKyc(req, res) {
       ? memoryStore.insertKycRecord(record)
       : await getModels().KycRecord.create(record);
 
+    const { broadcast } = require("../utils/notificationService");
+    broadcast({
+      type: "KYC_SUBMISSION",
+      title: status === "APPROVED" ? "KYC Approved" : status === "MANUAL_REVIEW" ? "KYC Pending Review" : "KYC Rejected",
+      message: `KYC for ${body.applicantName} is ${status.replace(/_/g, " ")} (Liveness: ${livenessConfidence}%, Reuse Linkage: ${linkedNames.length})`,
+      severity: status === "APPROVED" ? "success" : status === "MANUAL_REVIEW" ? "info" : "critical",
+    });
+
     res.status(201).json({
       ...(global.FINCOPILOT_DEMO_MODE ? saved : saved.get({ plain: true })),
       syntheticIdentityFlag: linkedNames.length > 0,

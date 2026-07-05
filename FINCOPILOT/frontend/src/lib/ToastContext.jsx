@@ -1,6 +1,7 @@
-import { createContext, useCallback, useContext, useState } from "react";
+import { createContext, useCallback, useContext, useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, XCircle, Info, X } from "lucide-react";
+import { useAuth } from "./AuthContext.jsx";
 
 const ToastContext = createContext(null);
 
@@ -9,13 +10,15 @@ const ACCENTS = { success: "var(--teal)", error: "var(--coral)", info: "var(--go
 
 export function ToastProvider({ children }) {
   const [toasts, setToasts] = useState([]);
+  const [liveEvents, setLiveEvents] = useState([]);
+  const { user } = useAuth() || {};
 
   const dismiss = useCallback((id) => {
     setToasts((t) => t.filter((x) => x.id !== id));
   }, []);
 
   const push = useCallback(
-    (message, type = "info", duration = 4000) => {
+    (message, type = "info", duration = 5000) => {
       const id = Math.random().toString(36).slice(2);
       setToasts((t) => [...t, { id, message, type }]);
       if (duration) setTimeout(() => dismiss(id), duration);
@@ -24,10 +27,44 @@ export function ToastProvider({ children }) {
     [dismiss]
   );
 
+  useEffect(() => {
+    if (!user) {
+      setLiveEvents([]);
+      return;
+    }
+
+    const eventSource = new EventSource("/api/notifications/stream");
+
+    eventSource.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "ping" || data.type === "connected") return;
+
+        let toastType = "info";
+        if (data.severity === "success") toastType = "success";
+        else if (data.severity === "critical") toastType = "error";
+
+        push(`${data.title}: ${data.message}`, toastType);
+        setLiveEvents((prev) => [data, ...prev].slice(0, 50));
+      } catch (err) {
+        console.error("SSE parse error:", err);
+      }
+    };
+
+    eventSource.onerror = () => {
+      // Browser automatically attempts reconnection for SSE, no need to manually reconnect
+    };
+
+    return () => {
+      eventSource.close();
+    };
+  }, [user, push]);
+
   const toast = {
     success: (msg, d) => push(msg, "success", d),
     error: (msg, d) => push(msg, "error", d),
     info: (msg, d) => push(msg, "info", d),
+    liveEvents,
   };
 
   return (

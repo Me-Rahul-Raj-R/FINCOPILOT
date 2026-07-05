@@ -153,6 +153,14 @@ async function sendMoney(req, res) {
         fraudDecision: evaluation.decision,
         status: "BLOCKED",
       });
+      const { broadcast } = require("../utils/notificationService");
+      broadcast({
+        type: "FRAUD_ALERT",
+        title: `Fraud Shield Block`,
+        message: `Suspicious payment of ${amt} INR to ${contactName} was blocked. Risk: ${evaluation.fraudRiskScore}`,
+        severity: "critical",
+      });
+
       return res.status(403).json({
         error: `Payment stopped by Fraud Shield (${evaluation.decision.replace(/_/g, " ")})`,
         fraudRiskScore: evaluation.fraudRiskScore,
@@ -208,6 +216,14 @@ async function sendMoney(req, res) {
       });
     }
 
+    const { broadcast } = require("../utils/notificationService");
+    broadcast({
+      type: "TRANSACTION",
+      title: "Money Sent",
+      message: `${req.user.name} sent ${amt} INR to ${contactName}`,
+      severity: "success",
+    });
+
     res.status(201).json({ wallet: { balance: newBalance }, transaction: walletTxn, fraudRiskScore: evaluation.fraudRiskScore });
   } catch (err) {
     console.error("[walletController] sendMoney error:", err);
@@ -232,6 +248,14 @@ async function billPay(req, res) {
       counterparty: billType,
       amount: amt,
       status: "SUCCESS",
+    });
+
+    const { broadcast } = require("../utils/notificationService");
+    broadcast({
+      type: "TRANSACTION",
+      title: "Bill Paid",
+      message: `${req.user.name} paid ${amt} INR for ${billType}`,
+      severity: "info",
     });
     res.status(201).json({ wallet: { balance: wallet.balance }, transaction: txn });
   } catch (err) {
