@@ -1,6 +1,8 @@
 # FinCopilot — AI Risk, Assistance & Payments Ledger
 
-A full-stack AI banking platform built for Render deployment. One Node.js
+### 🔗 **Live Demo URL**: [https://ff3350e380a64a.lhr.life](https://ff3350e380a64a.lhr.life)
+
+A full-stack AI banking platform built for global deployment. One Node.js
 service serves both the React SPA and the REST API — zero CORS issues, one
 URL, the RAG pipeline runs fully in-process.
 
