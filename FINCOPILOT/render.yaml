@@ -1,0 +1,77 @@
+# render.yaml — Render Blueprint for FinCopilot
+# Deploy as ONE Web Service (Node.js) that builds the React
+# frontend and serves it as static files via Express.
+#
+# This means:
+#   - One Render service, one URL
+#   - React SPA served from /  (Express static)
+#   - All API calls go to /api/* (same origin, zero CORS issues)
+#   - The RAG pipeline runs inside the same Node.js process
+#
+# How to use:
+#   1. Push this repo to GitHub
+#   2. Go to https://render.com → New → Blueprint
+#   3. Connect your GitHub repo → Render reads this file
+#   4. Set the environment variables listed below
+#   5. Deploy!
+
+services:
+  - type: web
+    name: fincopilot
+    runtime: node
+    region: oregon       # closest to most users; change to frankfurt for EU
+    plan: free           # free tier works; upgrade to starter for always-on
+
+    # ── Build ──────────────────────────────────────────────────────────────
+    # 1. Install frontend deps and build React into frontend/dist
+    # 2. Copy the built files into backend/public/dist
+    # 3. Install backend deps
+    buildCommand: |
+      npm install &&
+      cd frontend && npm install && npm run build &&
+      cd .. && mkdir -p backend/public &&
+      cp -r frontend/dist backend/public/dist &&
+      cd backend && npm install
+
+    # ── Start ─────────────────────────────────────────────────────────────
+    startCommand: cd backend && node server.js
+
+    # ── Health check ──────────────────────────────────────────────────────
+    healthCheckPath: /api/health
+
+    # ── Environment variables ─────────────────────────────────────────────
+    # Set these in the Render dashboard under "Environment" tab.
+    # DO NOT hardcode secrets here; this file is committed to Git.
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # JWT — generate with: node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+      - key: JWT_SECRET
+        generateValue: true   # Render generates a random value automatically
+
+      # Admin account (created via seed:admin or auto-seeded in demo mode)
+      - key: ADMIN_EMAIL
+        value: admin@fincopilot.local
+      - key: ADMIN_PASSWORD
+        value: Admin@12345   # Change this before going live!
+
+      # ── MySQL / PlanetScale (optional) ──────────────────────────────────
+      # Leave DB_HOST unset → FinCopilot runs in DEMO MODE (in-memory,
+      # resets every deploy). Set all four to switch to PERSISTENT MODE.
+      #
+      # Free MySQL options that work with Render:
+      #   - PlanetScale: https://planetscale.com (free tier)
+      #   - Aiven MySQL:  https://aiven.io       (free trial)
+      #   - Railway MySQL: https://railway.app   (free starter)
+      #
+      # - key: DB_HOST
+      #   value: your-mysql-host.example.com
+      # - key: DB_PORT
+      #   value: "3306"
+      # - key: DB_NAME
+      #   value: fincopilot
+      # - key: DB_USER
+      #   value: fincopilot_user
+      # - key: DB_PASSWORD
+      #   value: your-db-password     # Use Render secret env var for this
