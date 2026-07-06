@@ -28,9 +28,7 @@ services:
     # 3. Install backend deps
     buildCommand: |
       npm install &&
-      cd frontend && npm install && npm run build &&
-      cd .. && mkdir -p backend/public &&
-      cp -r frontend/dist backend/public/dist &&
+      npm run build &&
       cd backend && npm install
 
     # ── Start ─────────────────────────────────────────────────────────────

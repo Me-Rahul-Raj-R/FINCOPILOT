@@ -22,8 +22,8 @@ let sequelize = null;
 function buildSequelize() {
   return new Sequelize(
     process.env.DB_NAME || "fincopilot",
-    process.env.DB_USER || "root",
-    process.env.DB_PASSWORD || "",
+    process.env.DB_USER || "fincopilot_user",
+    process.env.DB_PASSWORD || "FinCopilot@2024",
     {
       host: process.env.DB_HOST,
       port: process.env.DB_PORT || 3306,

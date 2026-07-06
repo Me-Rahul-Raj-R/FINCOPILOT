@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -5,6 +6,7 @@ import {
   Lock, Bot, Wallet, ShieldAlert, X, Sparkles,
 } from "lucide-react";
 import { useAuth } from "../lib/AuthContext.jsx";
+import { api } from "../lib/api.js";
 
 const NAV_MAIN = [
   { to: "/", label: "Dashboard", icon: LayoutGrid, end: true },
@@ -24,6 +26,19 @@ function initials(name = "") {
 
 export default function Sidebar({ mobileOpen, onClose }) {
   const { user, isAdmin } = useAuth();
+  const [dbMode, setDbMode] = useState("DEMO");
+
+  useEffect(() => {
+    api.health()
+      .then((res) => {
+        if (res.mode) {
+          setDbMode(res.mode);
+        }
+      })
+      .catch(() => {
+        setDbMode("DEMO");
+      });
+  }, []);
 
   return (
     <aside className={`sidebar${mobileOpen ? " open" : ""}`}>
@@ -114,12 +129,14 @@ export default function Sidebar({ mobileOpen, onClose }) {
 
       {/* Footer */}
       <div className="sidebar-footer">
-        <div className="mode-badge">
+        <div className={`mode-badge ${dbMode === "PERSISTENT" ? "persistent" : "demo"}`}>
           <span className="mode-dot" />
-          Demo Mode
+          {dbMode === "PERSISTENT" ? "Persistent Mode" : "Demo Mode"}
         </div>
         <div style={{ fontSize: 10, lineHeight: 1.5, marginTop: 4 }}>
-          Synthetic data &amp; simulated models. Real algorithms, real database.
+          {dbMode === "PERSISTENT"
+            ? "Live database connection. All transactions and audits are permanently recorded in MySQL."
+            : "Synthetic data & simulated models. Real algorithms, real database."}
         </div>
       </div>
     </aside>

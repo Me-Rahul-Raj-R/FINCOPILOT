@@ -124,5 +124,12 @@ async function shutdown(signal) {
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT",  () => shutdown("SIGINT"));
 
-start();
+if (!process.env.VERCEL) {
+  start();
+} else {
+  // On Vercel serverless environment, initialize database on load without app.listen
+  connectDB().then(() => seedDemoAdmin()).catch((err) => {
+    console.error("[vercel] DB initialization failed:", err.message);
+  });
+}
 module.exports = app;

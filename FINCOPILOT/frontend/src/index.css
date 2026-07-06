@@ -267,8 +267,14 @@ code, .mono { font-family: var(--font-mono); }
   display: inline-flex; align-items: center; gap: 6px;
   font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.04em;
   padding: 4px 10px; border-radius: var(--r-pill);
-  background: var(--teal-glow); color: var(--teal); border: 1px solid var(--teal-border);
   margin-bottom: 8px;
+  transition: all var(--t-base) var(--ease);
+}
+.mode-badge.demo {
+  background: var(--amber-glow); color: var(--amber); border: 1px solid var(--amber-border);
+}
+.mode-badge.persistent {
+  background: var(--teal-glow); color: var(--teal); border: 1px solid var(--teal-border);
 }
 .mode-dot {
   width: 6px; height: 6px; border-radius: 50%; background: currentColor;
