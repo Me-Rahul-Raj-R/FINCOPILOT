@@ -1,6 +1,6 @@
 # FinCopilot — AI Risk, Assistance & Payments Ledger
 
-### 🔗 **Live Demo URL**: [https://1fde648c451268.lhr.life](https://1fde648c451268.lhr.life)
+### 🔗 **Live Production URL**: [https://fincopilot-seven.vercel.app](https://fincopilot-seven.vercel.app)
 
 A full-stack AI banking platform built for global deployment. One Node.js
 service serves both the React SPA and the REST API — zero CORS issues, one
